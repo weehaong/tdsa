@@ -1,0 +1,16 @@
+Package: tdsa
+Version: 1.0-0
+Date: 2023-04-17
+Title: Time-Dependent Sensitivity Analysis
+Author: Wee Hao Ng [aut, cre],
+  Christopher R. Myers [ctb],
+  Scott H. McArt [ctb],
+  Stephen P. Ellner [ctb]
+Maintainer: Wee Hao Ng <wn68@cornell.edu>
+Depends: R (>= 3.2.0)
+Imports: deSolve (>= 1.10-6), mathjaxr (>= 0.8-3), numDeriv (>= 2006.4-1)
+RdMacros: mathjaxr
+Description: Functions that can be used to calculate time-dependent state and parameter sensitivities for both continuous- and discrete-time deterministic models.
+License: GPL-3
+URL: https://github.com/weehaong/tdsa
+BugReports: https://github.com/weehaong/tdsa/issues

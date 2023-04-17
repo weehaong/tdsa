@@ -1,0 +1,8 @@
+importFrom("utils", "relist")
+importFrom("deSolve", ode)
+import(mathjaxr)
+importFrom("numDeriv", grad, jacobian)
+importFrom("stats", approxfun, splinefun)
+
+export(state_sens)
+export(parm_sens)
