@@ -31,7 +31,7 @@ To install from GitHub without using **devtools**:
 
 4. Install the tarball. This can be done using the R command
 
-        install.packages(path_to_tarball, repos = NULL, type="source")
+        install.packages(path_to_tarball, repos=NULL, type="source")
     
     or using the OS terminal command
     
