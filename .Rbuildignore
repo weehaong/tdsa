@@ -1,9 +1,5 @@
 ^\.github
 ^\.gitignore$
-^\Vignettes
 ^Example\.R$
 ^LICENSE$
-^NEWS$
 ^README\.md$
-^tdsa.*\.pdf$
-^tdsa.*\.tar\.gz$
