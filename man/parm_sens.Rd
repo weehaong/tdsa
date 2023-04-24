@@ -20,7 +20,8 @@
 \usage{
 parm_sens(
   state_sens_out,
-  numDeriv_arglist = list()
+  numDeriv_arglist = list(),
+  verbose = TRUE
 )
 }
 
@@ -32,6 +33,8 @@ parm_sens(
   To make this help page easier to read, from now on, any time we mention \code{dynamic_fn}, \code{parms}, etc., we refer to the corresponding elements in \code{state_sens_out}.}
   
   \item{numDeriv_arglist}{Optional list of arguments passed to the function \code{\link[numDeriv]{jacobian}} from the \pkg{numDeriv} package, when calculating derivatives. Can be used to specify the method, and arguments controlling the method. For example, if the parameter sensitivities take too long to calculate, try setting \code{numDeriv_arglist = list(method="simple")} to replace Richardson's extrapolation by a simple one-sided epsilon difference.}
+  
+  \item{verbose}{Whether to display progress messages in the console. Either \code{TRUE} (the default) or \code{FALSE}.}
 }
 
 

@@ -1,5 +1,7 @@
 # Function to calculate time-dependent state sensitivities.
 # See the .Rd file for a more detailed description of the input arguments.
+# The argument "verbose" controls whether to display progress messages in the
+# console.
 
 state_sens = function(
   model_type,
@@ -15,7 +17,8 @@ state_sens = function(
   terminal_fn_arglist = list(), 
   state_ode_arglist = list(),
   adjoint_ode_arglist = list(),
-  numDeriv_arglist = list()
+  numDeriv_arglist = list(),
+  verbose = TRUE
   ){
   
   # Save a copy of dynamic_fn_arglist, since it will be modified later on,
@@ -30,7 +33,12 @@ state_sens = function(
   # Check the input arguments.
   # --------------------------
   
-  cat("Checking input arguments... ")
+  # Check whether "verbose" is TRUE  FALSE.
+  # Note that NA is considered logical.
+  if( (!is.logical(verbose)) | is.na(verbose) )
+    stop("verbose can only take values TRUE or FALSE.")
+  
+  if(verbose)cat("Checking input arguments... ")
   
   # Check model_type first because it will influence the subsequent checks.
   if( !is.character(model_type) )
@@ -250,7 +258,7 @@ state_sens = function(
   if( !is.numeric(terminal_fn_output) | (length(terminal_fn_output) != 1) )
     stop("terminal_fn must return a single number.")
   
-  cat("Done!\n\n")
+  if(verbose)cat("Done!\n\n")
   
   
   
@@ -259,7 +267,7 @@ state_sens = function(
   # -----------------------------------------------
   # Solve the dynamic equations for the state ODEs.
   # -----------------------------------------------
-  cat("Solving the dynamic equations for the state variables... ")
+  if(verbose)cat("Solving the dynamic equations for the state variables... ")
   
   # The following assignments have been commented out because they were already
   # made during the input checks.
@@ -306,7 +314,7 @@ state_sens = function(
   if( any(is.na(state[, 2:(n_y+1)])) )
     stop("The solutions of the dynamic equations contain NA values. Check dynamic_fn for errors.")
   
-  cat("Done!\n\n")
+  if(verbose)cat("Done!\n\n")
   
   
   
@@ -317,7 +325,7 @@ state_sens = function(
   
   if( model_type == "continuous" ){
     
-    cat("Defining interpolation function for the state variables... ")
+    if(verbose)cat("Defining interpolation function for the state variables... ")
     
     # Neither splinefun() nor approxfun() can interpolate vector-valued functions,
     # so use apply() with splinefun() or approxfun() to create a list of
@@ -338,7 +346,7 @@ state_sens = function(
       return( sapply(state_fn_list, do.call, list(t)) )
     }
     
-    cat("Done!\n\n")
+    if(verbose)cat("Done!\n\n")
     
   }
 
@@ -350,7 +358,7 @@ state_sens = function(
   # Defining the adjoint equations and terminal conditions.
   # -------------------------------------------------------
   
-  cat("Defining the adjoint equations and terminal conditions... ")
+  if(verbose)cat("Defining the adjoint equations and terminal conditions... ")
   
   # Since the Hamiltonian is linear in the adjoint variables, we can create a
   # function representing the adjoint equations by numerically evaluating the
@@ -480,7 +488,7 @@ state_sens = function(
   
   lambda_terminal = do.call(what="grad", args=grad_terminal_arglist)
   
-  cat("Done!\n\n")
+  if(verbose)cat("Done!\n\n")
   
   
   
@@ -490,7 +498,7 @@ state_sens = function(
   # Solving the adjoint equations.
   # ------------------------------
   
-  cat("Solving the adjoint equations for the adjoint variables... ")
+  if(verbose)cat("Solving the adjoint equations for the adjoint variables... ")
   
   # For discrete-time models, we will simply use ode with method="iteration".
   if( model_type == "discrete" ){
@@ -504,7 +512,7 @@ state_sens = function(
   adjoint_ode_arglist[["times"]] = rev(times)   # Reversed time steps.
   adjoint_ode_arglist[["func"]] = adjoint_fn
   tdss_rev = do.call(what="ode", args=adjoint_ode_arglist)
-  cat("Done!\n\n")
+  if(verbose)cat("Done!\n\n")
   
   # Reverse the row ordering.
   tdss = tdss_rev[n_t:1,]
@@ -513,7 +521,7 @@ state_sens = function(
   if( any(is.na(tdss[, 2:(n_y+1)])) )
     stop("The solutions of the adjoint equations contain NA values. Check dynamic_fn, reward_fn or terminal_fn for errors.")
 
-  cat("Time-dependent state sensitivity calculations complete.\n\n")
+  if(verbose)cat("Time-dependent state sensitivity calculations complete.\n\n")
   
   return(list(
     model_type=model_type,

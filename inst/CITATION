@@ -1,0 +1,17 @@
+bibentry(bibtype = "Article",
+  title        = "A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems",
+  author       = c(person("Wee Hao", "Ng", email = "wn68@cornell.edu"),
+                   person("Christopher R.", "Myers"),
+                   person("Scott H.", "McArt"),
+                   person("Stephen P.", "Ellner")),
+  journal      = "American Naturalist",
+  year         = "in review",
+  doi          = "10.1101/2023.04.13.536769",
+
+  header       = "To cite tdsa in publications use:",
+  textVersion  =
+  paste("Wee Hao Ng, Christopher R. Myers, Scott H. McArt, Stephen P. Ellner (in review).",
+        "A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems.",
+        "American Naturalist.",
+        "doi:10.1101/2023.04.13.536769")
+)

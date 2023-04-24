@@ -1,8 +1,13 @@
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Using the tdsa package for time-dependent sensitivity analysis}
+-->
+
 ---
 title: "Using the **tdsa** package for time-dependent sensitivity analysis"
 author:
   - "Wee Hao Ng"
-date: "April 17, 2023"
+date: "April 19, 2023"
 link-citations: true
 output:
   html_document:
@@ -15,10 +20,9 @@ output:
 
 In this vignette, we present two examples on how to use the **tdsa** package to calculate time-dependent state and parameter sensitivities; see @ng_etal_2023a or @ng_etal_2023b for the definitions. The examples are based on models presented in @ng_etal_2023a, although our focus here will be on the code syntax and not the results.
 
-Before proceeding, we load the two packages that we will use in this example.
+Before proceeding, we load the **tdsa** package.
 ```{r}
 library(tdsa)
-library(viridisLite)  # For the colours used in some of the plots.
 ```
 
 <br>
@@ -102,7 +106,7 @@ times = seq(0, 30, length.out=1001)
 
 ### Calculating time-dependent state sensitivities
 
-We first calculate time-dependent state sensitivities using the function `state_sens`. Since this is a continuous-time model, we choose `model_type = "continuous"`.
+We first calculate time-dependent state sensitivities using the function `state_sens`. Since this is a continuous-time model, we choose `model_type = "continuous"`. Since this is a simple model that should only takes seconds to run, there is no need to show progress indicators in the console, so we set `verbose = FALSE`.
 ```{r, results="hide"}
 state_sens_out = state_sens(
   model_type = "continuous",
@@ -111,7 +115,8 @@ state_sens_out = state_sens(
   reward_fn = reward_fn,
   terminal_fn = terminal_fn,
   y_0 = y_0,
-  times = times
+  times = times,
+  verbose = FALSE
 )
 ```
 
@@ -150,7 +155,8 @@ plot(times, state_sens_out[["tdss"]][,1], type="l", lwd=2,
 
 Once we have calculated the state sensitivities, calculating the parameter sensitivities is easy---all we have to do is to use the output of the function `state_sens` as the input argument of the function `parm_sens`.
 ```{r, results="hide"}
-parm_sens_out = parm_sens(state_sens_out = state_sens_out)
+parm_sens_out = parm_sens(state_sens_out = state_sens_out,
+                          verbose = FALSE)
 ```
 
 The output is a list containing two elements. The first element is `times`, while the second element `tdps` is an object that gives the time-dependent parameter sensitivities. The structure of `tdps` depends on the structure of `parms`.
@@ -327,6 +333,7 @@ state_sens_out = state_sens(
   y_0 = y_0,
   times = times,
   dynamic_fn_arglist = list(parms2 = parms2),
+  verbose = FALSE
 )
 ```
 
@@ -352,7 +359,7 @@ lambda_II = state_sens_out[["tdss"]][, 6:10]  # State sensitivities for I_j.
 lambda_NN = (1 - PP) * lambda_SS + PP * lambda_II
 
 # Generate the plots.
-palette = plasma(5, begin=0.1, end=0.9)  # Colour palette.
+palette = c("#42049EFF", "#900DA4FF", "#CC4678FF", "#F1844BFF", "#FCCE25FF")  # Colour palette.
 
 par(mar=c(5,6.7,4,1.7)+0.1, mfrow=c(1,2))  # Set graphical parameters.
 
@@ -387,7 +394,8 @@ legend("topright", legend=paste("Species",1:4), lwd=3, col=palette[1:4], bty="n"
 Again, calculating the parameter sensitivities is easy, since it only involves using the output of `state_sens` as the input argument of the function `parm_sens`. To speed up the calculation of numerical derivatives, we will also use the optional argument `numDeriv_arglist` to reduce the number of Richardson iterations to two (see the **numDeriv** package help for details).
 ```{r, results="hide"}
 parm_sens_out = parm_sens(state_sens_out = state_sens_out,
-                          numDeriv_arglist = list(method.args=list(r=2)))
+                          numDeriv_arglist = list(method.args=list(r=2)),
+                          verbose = FALSE)
 ```
 
 As before, the output is a list containing `times`, and an object called `tdps` that gives the time-dependent parameter sensitivity. In this example, `parms` is a list containing a vector `mu` and a matrix `b`, so `tdps` is a list containing a matrix and a 3-index array that give the parameter sensitivities of `mu` and `b` respectively.
@@ -412,7 +420,7 @@ kappa_b = mapply(function(i,j){tdps[["b"]][,i,j]}, 2:5, 1:4)
 
 
 # Generate the plots.
-palette = plasma(5, begin=0.1, end=0.9)  # Colour palette.
+palette = c("#42049EFF", "#900DA4FF", "#CC4678FF", "#F1844BFF", "#FCCE25FF")  # Colour palette.
 
 par(mar=c(5,6.7,4,1.7)+0.1, mfrow=c(1,2))  # Set graphical parameters.
 

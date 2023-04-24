@@ -1,9 +1,12 @@
 # Function to calculate time-dependent parameter sensitivities.
 # See the .Rd file for a more detailed description of the input arguments.
+# The argument "verbose" controls whether to display progress messages in the
+# console.
 
 parm_sens = function(
   state_sens_out,
-  numDeriv_arglist = list()
+  numDeriv_arglist = list(),
+  verbose = TRUE
   ){
   
   
@@ -12,7 +15,7 @@ parm_sens = function(
   # Check the input arguments.
   # --------------------------
   
-  cat("Checking input arguments... ")
+  if(verbose)cat("Checking input arguments... ")
   
   # Check numDeriv_arglist.
   if( !is.list(numDeriv_arglist) )
@@ -213,7 +216,7 @@ parm_sens = function(
   if( any(is.na(dynamic_fn_output[[1]])) )
     stop(paste(err, "The first element of the list returned by dynamic_fn cannot contain NA values."))
   
-  cat("Done!\n\n")
+  if(verbose)cat("Done!\n\n")
   
   
   
@@ -222,7 +225,7 @@ parm_sens = function(
   # Clone dynamic_fn in such a way that it becomes compatible with numDeriv.
   # ------------------------------------------------------------------------
   
-  cat("Re-defining dynamic_fn to allow numerical derivatives with respect to parms... ")
+  if(verbose)cat("Re-defining dynamic_fn to allow numerical derivatives with respect to parms... ")
   
   # The following assignments have been commented out because they were already
   # made during the input checks.
@@ -327,7 +330,7 @@ parm_sens = function(
     return( do.call(dynamic_fn, dynamic_fn_arglist)[[1]] )
   }
   
-  cat("Done!\n\n")
+  if(verbose)cat("Done!\n\n")
   
   
   
@@ -336,7 +339,7 @@ parm_sens = function(
   # Calculate the parameter sensitivities.
   # --------------------------------------
   
-  cat("Calculating parameter sensitivities... ")
+  if(verbose)cat("Calculating parameter sensitivities... ")
   
   # Create a matrix to store the parameter sensitivities.
   tdps_mat = matrix(NA, nrow=length(times), ncol=length(unlist(skel)))
@@ -401,11 +404,11 @@ parm_sens = function(
 
   }
   
-  cat("Done!\n\n")
+  if(verbose)cat("Done!\n\n")
   
   
   
-  cat("Time-dependent parameter sensitivity calculations complete.\n\n")
+  if(verbose)cat("Time-dependent parameter sensitivity calculations complete.\n\n")
   
   # Return times and tdps.
   if(parms_not_list){

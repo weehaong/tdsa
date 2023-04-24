@@ -43,7 +43,8 @@ state_sens(
   terminal_fn_arglist = list(),
   state_ode_arglist = list(),
   adjoint_ode_arglist = list(),
-  numDeriv_arglist = list()
+  numDeriv_arglist = list(),
+  verbose = TRUE
 )
 }
 
@@ -104,6 +105,8 @@ state_sens(
   \item{state_ode_arglist, adjoint_ode_arglist}{Only used for continuous-time models. Optional lists of arguments passed to the function \code{\link[deSolve]{ode}} from the \pkg{deSolve} package, when solving the dynamic and adjoint equations respectively. Can be used to specify the method, and arguments controlling the method. See "Details" for the definition of the adjoint equations. (Discrete-time models will always use the "iteration" method, so these arguments are ignored.)}
   
   \item{numDeriv_arglist}{Optional list of arguments passed to the functions \code{\link[numDeriv]{grad}} and \code{\link[numDeriv]{jacobian}} from the \pkg{numDeriv} package, when calculating derivatives. Can be used to specify the method, and arguments controlling the method. For example, if the adjoint equations take too long to solve, try setting \code{numDeriv_arglist = list(method="simple")} to replace Richardson's extrapolation by a simple one-sided epsilon difference.}
+  
+  \item{verbose}{Whether to display progress messages in the console. Either \code{TRUE} (the default) or \code{FALSE}.}
 }
 
 \details{
