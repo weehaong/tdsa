@@ -38,10 +38,6 @@ To install from GitHub without using **devtools**:
 
         install.packages(path_to_tarball, repos=NULL, type="source")
     
-    or using the OS terminal command
-    
-        R CMD install path_to_tarball
-
     where `path_to_tarball` should point to the tarball file created in the previous step.
 
 
