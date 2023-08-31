@@ -5,13 +5,13 @@ bibentry(bibtype = "Article",
                    person("Scott H.", "McArt"),
                    person("Stephen P.", "Ellner")),
   journal      = "American Naturalist",
-  year         = "in review",
-  doi          = "10.1101/2023.04.13.536769",
+  year         = "in press",
+  doi          = "10.1086/726143",
 
   header       = "To cite tdsa in publications use:",
   textVersion  =
-  paste("Wee Hao Ng, Christopher R. Myers, Scott H. McArt, Stephen P. Ellner (in review).",
+  paste("Wee Hao Ng, Christopher R. Myers, Scott H. McArt, Stephen P. Ellner (in press).",
         "A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems.",
         "American Naturalist.",
-        "doi:10.1101/2023.04.13.536769")
+        "doi:10.1086/726143")
 )

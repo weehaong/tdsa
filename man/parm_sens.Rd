@@ -8,7 +8,7 @@
   
   Function to calculate time-dependent parameter sensitivities.
   
-  Assume the same model and reward as described in \code{\link{state_sens}}. Unlike perturbations of the state variables, since the model parameters are not treated as dynamic quantities (even if they may be time-varying), an explicit perturbation of a parameter will only temporarily change the parameter while the perturbation lasts. Now consider a very brief perturbation (i.e., a sharp spike or dip) of the parameter \mjseqn{b_i}, centered at time \mjseqn{t}. We define the time-dependent parameter sensitivity \mjseqn{\kappa_i(t)} as the sensitivity of the reward to such a perturbation. See Ng et al. (in review, in prep) for a more precise definition.
+  Assume the same model and reward as described in \code{\link{state_sens}}. Unlike perturbations of the state variables, since the model parameters are not treated as dynamic quantities (even if they may be time-varying), an explicit perturbation of a parameter will only temporarily change the parameter while the perturbation lasts. Now consider a very brief perturbation (i.e., a sharp spike or dip) of the parameter \mjseqn{b_i}, centered at time \mjseqn{t}. We define the time-dependent parameter sensitivity \mjseqn{\kappa_i(t)} as the sensitivity of the reward to such a perturbation. See Ng et al. (in press, submitted) for a more precise definition.
   
   This function uses the output returned by \code{\link{state_sens}} (which contain elements \code{parms} and \code{times}) to calculate the sensitivity for every parameter in \code{parms} at every time step in \code{times}.
   
@@ -73,9 +73,9 @@ parm_sens(
 }
 
 \references{
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in review). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. American Naturalist. \doi{10.1101/2023.04.13.536769}.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in press). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. American Naturalist. eprint \doi{10.1101/2023.04.13.536769}.
 
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in prep). tdsa: An R package to perform time-dependent sensitivity analysis. Methods in Ecology and Evolution.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (submitted). tdsa: An R package to perform time-dependent sensitivity analysis. Methods in Ecology and Evolution.
 }
 
 \seealso{

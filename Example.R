@@ -81,7 +81,7 @@ terminal_fn = function(y){
 }
 
 # Time steps over management period. We discretise it into 1001 time steps
-# (so the step size is 0.02).
+# (so the step size is 0.03).
 times = seq(0, 30, length.out=1001)
 
 

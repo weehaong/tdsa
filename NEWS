@@ -1,3 +1,9 @@
+##### Version 1.1-0
+* Added automated testing using the package tinytest.
+* Created helper functions for some frequently-used checks; this substantially reduced the code length of the two main functions state_sens() and parm_sens().
+* Added new vignette on the theory of TDSA.
+* Original vignette split into two, with more background provided for each example.
+
 ##### Version 1.0-1
 * Added vignette on how to use the package.
 * Added citation information.

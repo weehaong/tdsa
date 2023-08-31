@@ -1,7 +1,10 @@
 # Function to calculate time-dependent state sensitivities.
-# See the .Rd file for a more detailed description of the input arguments.
-# The argument "verbose" controls whether to display progress messages in the
-# console.
+#
+# Since the input arguments are rather complicated, it is easier to "handcraft"
+# the .Rd file than to use roxygen2 to create a documentation with the desired
+# look.
+# Therefore, to avoid duplicate and possibly conflicting information, the
+# function description should be placed directly in the .Rd file and not here.
 
 state_sens = function(
   model_type,
@@ -33,84 +36,44 @@ state_sens = function(
   # Check the input arguments.
   # --------------------------
   
-  # Check whether "verbose" is TRUE  FALSE.
-  # Note that NA is considered logical.
-  if( (!is.logical(verbose)) | is.na(verbose) )
-    stop("verbose can only take values TRUE or FALSE.")
+  # Check verbose first so we know whether to display the progress indicators
+  # for the subsequent checks.
+  assert_choice(scalar=verbose, choices=c(TRUE, FALSE))
   
   if(verbose)cat("Checking input arguments... ")
   
-  # Check model_type first because it will influence the subsequent checks.
-  if( !is.character(model_type) )
-    stop("model_type must be character.")
-  if( length(model_type) != 1 )
-    stop("model_type must have length = 1.")
-  if( !(model_type %in% c("continuous", "discrete")) )
-    stop('model_type can only take values "continuous" or "discrete".')
+  
+  
+  # Check the other input arguments.
+  assert_choice(scalar=model_type, choices=c("continuous", "discrete"))
+  assert_y_0(y_0=y_0)
+  assert_arglist(arglist=dynamic_fn_arglist)
+  assert_arglist(arglist=reward_fn_arglist)
+  assert_arglist(arglist=terminal_fn_arglist)
+  assert_arglist(arglist=numDeriv_arglist)
 
-  
-  
-  # Check that the input arguments (except parms) are of the correct classes.
-  if( !is.function(dynamic_fn) )
-    stop("dynamic_fn must be a function.")
-  if( !is.function(reward_fn) )
-    stop("reward_fn must be a function.")
-  if( !is.function(terminal_fn) )
-    stop("terminal_fn must be a function.")
-  if( !is.numeric(y_0) )
-    stop("y_0 must be numeric.")
-  if( !is.numeric(times) )
-    stop("times must be numeric.")
-  if( !is.list(dynamic_fn_arglist) )
-    stop("dynamic_fn_arglist must be a list.")
-  if( !is.list(reward_fn_arglist) )
-    stop("reward_fn_arglist must be a list.")
-  if( !is.list(terminal_fn_arglist) )
-    stop("terminal_fn_arglist must be a list.")
-  if( !is.list(numDeriv_arglist) )
-    stop("numDeriv_arglist must be a list.")
+  # These checks should only be done after model_type has been checked.
+  assert_times(times=times, model_type=model_type)
   
   if( model_type == "continuous" ){
-    if( !is.character(interpol) )
-      stop("interpol must be character.")
-    if( !is.list(state_ode_arglist) )
-      stop("state_ode_arglist must be a list.")  
-        if( !is.list(adjoint_ode_arglist) )
-      stop("adjoint_ode_arglist must be a list.")
+    assert_choice(scalar=interpol, choices=c("spline", "linear"))
+    
+    assert_arglist(arglist=state_ode_arglist)
+    assert_arglist(arglist=adjoint_ode_arglist)
+    
+    # Check that the user is not using the "iteration" method if the model type
+    # is continuous.
+    if( !is.null(state_ode_arglist[["method"]]) )
+      if( state_ode_arglist[["method"]] == "iteration" )
+        stop('state_ode_arglist[["method"]] cannot be "iteration" if model_type is "continuous.')
+    if( !is.null(adjoint_ode_arglist[["method"]]) )
+      if( adjoint_ode_arglist[["method"]] == "iteration" )
+        stop('adjoint_ode_arglist[["method"]] cannot be "iteration" if model_type is "continuous.')
   }
   
   
   
-  # Check y_0.
-  n_y = length(y_0)
-  if( n_y < 1 )
-    stop("y_0 must have length >= 1.")
-  if( any(is.na(y_0)) )
-    stop("y_0 cannot contain NA values.")
-  
-  
-  
-  # Check times.
-  # Since we will use times[1] when checking parms, this check must be performed
-  # before we check parms.
-  n_t = length(times)
-  if( n_t < 2 )
-    stop("times must have length >= 2.")
-  if( any(is.na(times)) )
-    stop("times cannot contain NA values.")
-  if( any(duplicated(times)) )
-    stop("times cannot have duplicate elements.")
-  if( is.unsorted(times) )
-    stop("times must be sorted in ascending order.")
-  
-  if( model_type == "discrete" ){
-    if( any(round(times) != times) | any(diff(times) != 1) )
-      stop("times can only contain consecutive integer values.")
-  }
-  
-  
-  
-  # Check parms. This is probably the most complicated check.
+  # Check parms. This should only be done after times has been checked.
   if( missing(parms) ){
     # Allow parms to be missing, for consistency with ode.
     # However, we will set it to NULL so that we can return it in the output.
@@ -119,145 +82,25 @@ state_sens = function(
   } else if( is.null(parms) ){
     # If parms is NULL, do nothing.
     
-  } else if( is.numeric(parms) ){
-    # If parms is numeric, check whether it contains NA values.
-    if( any(is.na(parms)) )
-      stop("parms cannot contain NA values.")
-    
-  } else if( is.function(parms) ){
-    # If parms is a function, make further checks.
-    
-    # Check whether the function only accepts one input argument.
-    if( length(formals(parms)) != 1 )  
-      stop("If parms is a function, it must only accept one input argument t.")
-    # Check the output using the first time step.
-    if( !is.numeric(parms(times[1])) )
-      stop("If parms is a function, it must return a numeric output.")
-    if( any(is.na(parms(times[1]))) )
-      stop("If parms is a function, the output cannot contain NA values.")
-    
-  } else if( is.list(parms) ){
-    # If parms is a list, make further checks.
-    
-    # Check whether every element in the list numeric or a function.
-    # We use vapply because sapply doesn't simplify if parms is an empty list.
-    num_elements = which( vapply(X=parms, FUN=is.numeric, FUN.VALUE=T) )  # Numeric elements.
-    fun_elements = which( vapply(X=parms, FUN=is.function, FUN.VALUE=T) )  # Function elements.
-    if( length(parms) != (length(num_elements) + length(fun_elements)) )
-      stop("If parms is a list, every element must either be numeric or a function.")
-    
-    # For each numeric element, check whether it contains NA values.
-    for(i in num_elements){
-      if( any(is.na(parms[[i]])) )
-        stop(paste("parms[[",i,"]] cannot contain NA values.", sep=""))
-    }
-    
-    # For each function element, make further checks.
-    for(i in fun_elements){
-      # Check whether the function only accepts one input argument.
-      if( length(formals(parms[[i]])) != 1 )
-        stop(paste("If parms[[",i,"]] is a function, it must only accept one input argument t.", sep=""))
-      # Check the output using the first time step.
-      if( !is.numeric(parms[[i]](times[1])) )
-        stop(paste("If parms[[",i,"]] is a function, it must return a numeric output.", sep=""))
-      # Does its output contain NA values? Check using the first time step.
-      if( any(is.na(parms[[i]](times[1]))) )
-        stop(paste("If parms[[",i,"]] is a function, the output cannot contain NA values.", sep=""))
-    }
-    
   } else {
-    # parms does not have an allowed structure.
-    stop("Structure of parms not allowed. See help(state_sens) for allowed structures.")
-    
+    # Run the other checks for parms.
+    assert_parms(parms=parms, times=times)
   }
   
-  
-  
-  # Check interpol.
-  if( model_type == "continuous" ){
-    if( length(interpol) != 1 )
-      stop("interpol must have length = 1.")
-    if( !(interpol %in% c("linear", "spline")) ) 
-      stop('interpol can only take values "linear" or "spline".')
-  }
-  
-  
-  
-  # Check the optional argument lists.
-  if( any(names(dynamic_fn_arglist) == "") | any(duplicated(names(dynamic_fn_arglist))) )
-    stop("All elements in dynamic_fn_arglist must be named, and the names cannot contain duplicates.")
-  if( any(names(reward_fn_arglist) == "") | any(duplicated(names(reward_fn_arglist))) )
-    stop("All elements in reward_fn_arglist must be named, and the names cannot contain duplicates.")
-  if( any(names(terminal_fn_arglist) == "") | any(duplicated(names(terminal_fn_arglist))) )
-    stop("All elements in terminal_fn_arglist must be named, and the names cannot contain duplicates.")
-  if( any(names(numDeriv_arglist) == "") | any(duplicated(names(numDeriv_arglist))) )
-    stop("All elements in numDeriv_arglist must be named, and the names cannot contain duplicates.")
-  
-  if( model_type == "continuous" ){
-    if( any(names(state_ode_arglist) == "") | any(duplicated(names(state_ode_arglist))) )
-      stop("All elements in state_ode_arglist must be named, and the names cannot contain duplicates.")
-    if( any(names(adjoint_ode_arglist) == "") | any(duplicated(names(adjoint_ode_arglist))) )
-      stop("All elements in adjoint_ode_arglist must be named, and the names cannot contain duplicates.")
-    
-    # Check that the user is not using the "iteration" method.
-    if( !is.null(state_ode_arglist[["method"]]) ){
-      if( state_ode_arglist[["method"]] == "iteration" )
-        stop('state_ode_arglist[["method"]] cannot be "iteration" if model_type is "continuous.')
-    }
-    if( !is.null(adjoint_ode_arglist[["method"]]) ){
-      if( adjoint_ode_arglist[["method"]] == "iteration" )
-        stop('adjoint_ode_arglist[["method"]] cannot be "iteration" if model_type is "continuous.')
-    }
-  }
 
   
+  # Check dynamic_fn, reward_fn and terminal_fn. This should only be done after
+  # parms, y_0, times and the optional argument lists have been checked.
+  assert_dynamic_fn(dynamic_fn=dynamic_fn, parms=parms, y=y_0, times=times,
+                    dynamic_fn_arglist=dynamic_fn_arglist,
+                    length_label="length(y_0)")
+  assert_reward_fn(reward_fn=reward_fn, y=y_0, times=times,
+                   reward_fn_arglist=reward_fn_arglist)
+  assert_terminal_fn(terminal_fn=terminal_fn, y=y_0,
+                     terminal_fn_arglist=terminal_fn_arglist)
   
-  # Check the user-defined functions.
   
-  # Extract the argument names of the user-defined functions.
-  dynamic_fn_argnames = names(formals(dynamic_fn))
-  reward_fn_argnames = names(formals(reward_fn))
-  terminal_fn_argnames = names(formals(terminal_fn))
-  
-  # Check that the user-defined functions have the required number of arguments.
-  if(length(dynamic_fn_argnames) < 3)
-    stop("dynamic_fn must accept at least three input arguments t, y and parms.")
-  if(length(reward_fn_argnames) < 2)
-    stop("reward_fn must accept at least two input arguments t and y.")
-  if(length(terminal_fn_argnames) < 1)
-    stop("terminal_fn must accept at least one input argument y.")
-  
-  # Obtain sample output from the user-defined functions.
-  # Evaluate at times[1] and y_0.
-  # Note that assigning an element to NULL automatically creates a list.
-  dynamic_fn_arglist[[dynamic_fn_argnames[1]]] = times[1]
-  dynamic_fn_arglist[[dynamic_fn_argnames[2]]] = y_0
-  dynamic_fn_arglist[[dynamic_fn_argnames[3]]] = parms
-  dynamic_fn_output = do.call(dynamic_fn, dynamic_fn_arglist)
-  reward_fn_arglist[[reward_fn_argnames[1]]] = times[1]
-  reward_fn_arglist[[reward_fn_argnames[2]]] = y_0
-  reward_fn_output = do.call(reward_fn, reward_fn_arglist)
-  terminal_fn_arglist[[terminal_fn_argnames[1]]] = times[1]
-  terminal_fn_output = do.call(terminal_fn, terminal_fn_arglist)
-  
-  # Check the output from dynamic_fn.
-  if( !is.list(dynamic_fn_output) )
-    stop("dynamic_fn must return a list.")
-  if( !is.numeric(dynamic_fn_output[[1]]) | (length(dynamic_fn_output[[1]]) != n_y) )
-    stop("The first element of the list returned by dynamic_fn must be numeric, and have the same length as y_0.")
-  if( any(is.na(dynamic_fn_output[[1]])) )
-    stop("The first element of the list returned by dynamic_fn cannot contain NA values.")
-  if( length(dynamic_fn_output) > 1 ){
-    if( !is.numeric(unlist(dynamic_fn_output[-1])) )
-      stop("Each optional element of the list returned by dynamic_fn must be numeric.")
-  }
-  
-  # Check the output from reward_fn and terminal_fn.
-  if( !is.numeric(reward_fn_output) | (length(reward_fn_output) != 1) )
-    stop("reward_fn must return a single number.")
-  if( !is.numeric(terminal_fn_output) | (length(terminal_fn_output) != 1) )
-    stop("terminal_fn must return a single number.")
-  
+
   if(verbose)cat("Done!\n\n")
   
   
@@ -269,17 +112,14 @@ state_sens = function(
   # -----------------------------------------------
   if(verbose)cat("Solving the dynamic equations for the state variables... ")
   
-  # The following assignments have been commented out because they were already
-  # made during the input checks.
-  # 
-  # # Length of y_0 and times.
-  # n_y = length(y_0)
-  # n_t = length(times)
-  # 
-  # # Extract the argument names of the user-defined functions.
-  # dynamic_fn_argnames = names(formals(dynamic_fn))
-  # reward_fn_argnames = names(formals(reward_fn))
-  # terminal_fn_argnames = names(formals(terminal_fn))
+  # Length of y_0 and times.
+  n_y = length(y_0)
+  n_t = length(times)
+
+  # Extract the argument names of the user-defined functions.
+  dynamic_fn_argnames = names(formals(dynamic_fn))
+  reward_fn_argnames = names(formals(reward_fn))
+  terminal_fn_argnames = names(formals(terminal_fn))
   
   # Add parms to dynamic_fn_arglist once and for all.
   dynamic_fn_arglist[[dynamic_fn_argnames[3]]] = parms
@@ -307,7 +147,7 @@ state_sens = function(
   state_ode_arglist[["y"]] = y_0
   state_ode_arglist[["times"]] = times
   state_ode_arglist[["func"]] = dynamic_fn1
-  state = do.call(what="ode", args=state_ode_arglist)
+  state = do.call(what=deSolve::ode, args=state_ode_arglist)
   
   # Check that the solutions do not contain NA values.
   # We will not check the additional columns corresponding to "global values".
@@ -330,13 +170,13 @@ state_sens = function(
     # Neither splinefun() nor approxfun() can interpolate vector-valued functions,
     # so use apply() with splinefun() or approxfun() to create a list of
     # interpolation functions, one for each component of the state vector.
-    # Note that drop=F is needed in case there is only one state variable.
+    # Note that drop=FALSE is needed in case there is only one state variable.
     if(interpol == "spline"){
-      state_fn_list = apply(X=state[, 2:(n_y+1), drop=F], MARGIN=2,
+      state_fn_list = apply(X=state[, 2:(n_y+1), drop=FALSE], MARGIN=2,
                             FUN=splinefun, x=times)
       
     } else if(interpol == "linear"){
-      state_fn_list = apply(X=state[, 2:(n_y+1), drop=F], MARGIN=2,
+      state_fn_list = apply(X=state[, 2:(n_y+1), drop=FALSE], MARGIN=2,
                             FUN=approxfun, x=times, rule=2)
     }
     
@@ -410,14 +250,14 @@ state_sens = function(
       # named "t".
       jacobian_arglist[["x"]] = y
       jacobian_arglist[["t"]] = t
-      jacob_state_ode = do.call(what="jacobian", args=jacobian_arglist)
+      jacob_state_ode = do.call(what=numDeriv::jacobian, args=jacobian_arglist)
       
       # Calculate the gradient of reward_fn2.
       # Note that reward_fn2 has been defined such that the time argument is
       # named "t".
       grad_reward_arglist[["x"]] = y
       grad_reward_arglist[["t"]] = t
-      grad_reward = do.call(what="grad", args=grad_reward_arglist)
+      grad_reward = do.call(what=numDeriv::grad, args=grad_reward_arglist)
       
       # Return the adjoint equations.
       list( - grad_reward - matrix(lambda, nrow=1) %*% jacob_state_ode )
@@ -453,14 +293,14 @@ state_sens = function(
         # named "t".
         jacobian_arglist[["x"]] = y_tminus1
         jacobian_arglist[["t"]] = tminus1
-        jacob_state_ode = do.call(what="jacobian", args=jacobian_arglist)
+        jacob_state_ode = do.call(what=numDeriv::jacobian, args=jacobian_arglist)
         
         # Calculate the gradient of reward_fn2.
         # Note that reward_fn2 has been defined such that the time argument is
         # named "t".
         grad_reward_arglist[["x"]] = y_tminus1
         grad_reward_arglist[["t"]] = tminus1
-        grad_reward = do.call(what="grad", args=grad_reward_arglist)
+        grad_reward = do.call(what=numDeriv::grad, args=grad_reward_arglist)
         
         # Return the adjoint equations.
         list( grad_reward + matrix(lambda, nrow=1) %*% jacob_state_ode )
@@ -486,7 +326,7 @@ state_sens = function(
     
   }
   
-  lambda_terminal = do.call(what="grad", args=grad_terminal_arglist)
+  lambda_terminal = do.call(what=numDeriv::grad, args=grad_terminal_arglist)
   
   if(verbose)cat("Done!\n\n")
   
@@ -511,7 +351,7 @@ state_sens = function(
   adjoint_ode_arglist[["y"]] = lambda_terminal
   adjoint_ode_arglist[["times"]] = rev(times)   # Reversed time steps.
   adjoint_ode_arglist[["func"]] = adjoint_fn
-  tdss_rev = do.call(what="ode", args=adjoint_ode_arglist)
+  tdss_rev = do.call(what=deSolve::ode, args=adjoint_ode_arglist)
   if(verbose)cat("Done!\n\n")
   
   # Reverse the row ordering.
@@ -529,7 +369,7 @@ state_sens = function(
     parms=parms,
     dynamic_fn_arglist=dynamic_fn_arglist_original,
     times=times,
-    state=state[,-1, drop=F],  # drop=F so it remains a matrix if we only have one state variable.
-    tdss=tdss[,-1, drop=F]     # Ditto.
+    state=state[,-1, drop=FALSE],  # drop=FALSE so it remains a matrix if we only have one state variable.
+    tdss=tdss[,-1, drop=FALSE]     # Ditto.
     ))
 }

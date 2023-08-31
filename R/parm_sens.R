@@ -1,7 +1,10 @@
 # Function to calculate time-dependent parameter sensitivities.
-# See the .Rd file for a more detailed description of the input arguments.
-# The argument "verbose" controls whether to display progress messages in the
-# console.
+#
+# Since the input arguments are rather complicated, it is easier to "handcraft"
+# the .Rd file than to use roxygen2 to create a documentation with the desired
+# look.
+# Therefore, to avoid duplicate and possibly conflicting information, the
+# function description should be placed directly in the .Rd file and not here.
 
 parm_sens = function(
   state_sens_out,
@@ -15,35 +18,37 @@ parm_sens = function(
   # Check the input arguments.
   # --------------------------
   
+  # Check verbose first so we know whether to display the progress indicators
+  # for the subsequent checks.
+  assert_choice(scalar=verbose, choices=c(TRUE, FALSE))
+  
   if(verbose)cat("Checking input arguments... ")
   
-  # Check numDeriv_arglist.
-  if( !is.list(numDeriv_arglist) )
-    stop("numDeriv_arglist must be a list.")
-  if( any(names(numDeriv_arglist) == "") | any(duplicated(names(numDeriv_arglist))) )
-    stop("All elements in numDeriv_arglist must be named, and the names cannot contain duplicates.")
   
   
+  # Check input arguments that are unrelated to state_sens_out.
+  assert_arglist(arglist=numDeriv_arglist)
+
   
-  # Check state_sens_out. This is a long series of checks.
-  # Common error message to display.
-  err = "Error with state_sens_out; please use the output of state_sens instead of trying to create it by hand.\nDetails:"
+  
+  # Long series of checks involving state_sens_out.
+  # Common error prefix to display.
+  prefix = "Error with state_sens_out; please use the output of state_sens instead of trying to create it by hand.\nDetails: "
   
   # Check that state_sens_out is a list.
   if( !is.list(state_sens_out) )
-    stop(paste(err, "state_sens_out must be a list."))
+    stop(paste0(prefix, "state_sens_out must be a list."))
   
   # Check that state_sens_out contains all required elements.
   element_names = c("model_type", "dynamic_fn", "parms", "dynamic_fn_arglist",
                     "times", "state", "tdss")
   if( !all( element_names %in% names(state_sens_out) ) )
-    stop(paste(err, "state_sens_out is missing required elements."))
+    stop(paste0(prefix, "state_sens_out is missing required elements."))
   
   
   
-  # Check elements of state_sens_out.
-  
-  # Elements of state_sens_out.
+  # Check individual elements of state_sens_out.
+  # First, extract the elements.
   model_type = state_sens_out$model_type
   dynamic_fn = state_sens_out$dynamic_fn
   parms = state_sens_out$parms
@@ -52,169 +57,47 @@ parm_sens = function(
   state = state_sens_out$state
   tdss = state_sens_out$tdss
   
+  assert_choice(scalar=model_type, choices=c("continuous", "discrete"), prefix=prefix)
+  assert_arglist(arglist=dynamic_fn_arglist, prefix=prefix)
   
-  
-  # Check model_type first because it will influence the subsequent checks.
-  if( !is.character(model_type) )
-    stop(paste(err, "model_type must be character."))
-  if( length(model_type) != 1 )
-    stop(paste(err, "model_type must have length = 1."))
-  if( !(model_type %in% c("continuous", "discrete")) )
-    stop(paste(err, 'model_type can only take values "continuous" or "discrete".'))
+  # This check should only be done after model_type has been checked.
+  assert_times(times=times, model_type=model_type, prefix=prefix)
   
   
   
-  # Check that the input arguments (except parms) are of the correct classes.
-  if( !is.function(dynamic_fn) )
-    stop(paste(err, "dynamic_fn must be a function."))
-  if( !is.numeric(times) )
-    stop(paste(err, "times must be numeric."))
-  if( !is.list(dynamic_fn_arglist) )
-    stop(paste(err, "dynamic_fn_arglist must be a list."))
-  if( !is.numeric(state) | !is.matrix(state) )
-    stop(paste(err, "state must be a numeric matrix."))
-  if( !is.numeric(tdss) | !is.matrix(tdss) )
-    stop(paste(err, "tdss must be a numeric matrix."))
-  
-  
-  
-  # Check times.
-  # Since we will use times[1] when checking parms, this check must be performed
-  # before we check parms.
-  n_t = length(times)
-  if( n_t < 2 )
-    stop(paste(err, "times must have length >= 2."))
-  if( any(is.na(times)) )
-    stop(paste(err, "times cannot contain NA values."))
-  if( any(duplicated(times)) )
-    stop(paste(err, "times cannot have duplicate elements."))
-  if( is.unsorted(times) )
-    stop(paste(err, "times must be sorted in ascending order."))
-  
-  if( model_type == "discrete" ){
-    if( any(round(times) != times) | any(diff(times) != 1) )
-      stop(paste(err, "times can only contain consecutive integer values."))
-  }
-  
-  
-  
-  # Check parms. This is probably the most complicated check.
+  # Check parms. This should only be done after times has been checked.
   if( is.null(parms) ){
     # If parms is NULL, there are no parameters to analyse.
-    stop(paste(err, "parms is NULL, so there are no parameters to analyse."))
-    
-  } else if( is.numeric(parms) ){
-    # If parms is numeric, check whether it contains NA values.
-    if( any(is.na(parms)) )
-      stop(paste(err, "parms cannot contain NA values."))
-    
-  } else if( is.function(parms) ){
-    # If parms is a function, make further checks.
-    
-    # Check whether the function only accepts one input argument.
-    if( length(formals(parms)) != 1 )  
-      stop(paste(err, "If parms is a function, it must only accept one input argument t."))
-    # Check the output using the first time step.
-    if( !is.numeric(parms(times[1])) )
-      stop(paste(err, "If parms is a function, it must return a numeric output."))
-    if( any(is.na(parms(times[1]))) )
-      stop(paste(err, "If parms is a function, the output cannot contain NA values."))
-    
-  } else if( is.list(parms) ){
-    # If parms is a list, make further checks.
-    
-    # Check whether every element in the list numeric or a function.
-    # We use vapply because sapply doesn't simplify if parms is an empty list.
-    num_elements = which( vapply(X=parms, FUN=is.numeric, FUN.VALUE=T) )  # Numeric elements.
-    fun_elements = which( vapply(X=parms, FUN=is.function, FUN.VALUE=T) )  # Function elements.
-    if( length(parms) != (length(num_elements) + length(fun_elements)) )
-      stop(paste(err, "If parms is a list, every element must either be numeric or a function."))
-    
-    # For each numeric element, check whether it contains NA values.
-    for(i in num_elements){
-      if( any(is.na(parms[[i]])) )
-        stop(paste(err, paste("parms[[",i,"]] cannot contain NA values.", sep="")))
-    }
-    
-    # For each function element, make further checks.
-    for(i in fun_elements){
-      # Check whether the function only accepts one input argument.
-      if( length(formals(parms[[i]])) != 1 )
-        stop(paste(err, paste("If parms[[",i,"]] is a function, it must only accept one input argument t.", sep="")))
-      # Check the output using the first time step.
-      if( !is.numeric(parms[[i]](times[1])) )
-        stop(paste(err, paste("If parms[[",i,"]] is a function, it must return a numeric output.", sep="")))
-      # Does its output contain NA values? Check using the first time step.
-      if( any(is.na(parms[[i]](times[1]))) )
-        stop(paste(err, paste("If parms[[",i,"]] is a function, the output cannot contain NA values.", sep="")))
-    }
+    stop(paste0(prefix, "parms is NULL, so there are no parameters to analyse."))
     
   } else {
-    # parms does not have an allowed structure.
-    stop(paste(err, "Structure of parms not allowed. See help(state_sens) for allowed structures."))
-    
+    # Run the other checks for parms.
+    assert_parms(parms=parms, times=times, prefix=prefix)
   }
   
   
   
-  # Check state and tdss.
-  
-  # Use ncol(tdss) for n_y, since state might contain additional columns
-  # corresponding to "global values".
-  n_y = ncol(tdss)
-  n_t = length(times)
-  
-  # Check the dimensions of state and tdss.
-  if( nrow(state) != n_t )
-    stop(paste(err, "nrow(state) must be equal to length(times)."))
-  if( nrow(tdss) != n_t )
-    stop(paste(err, "nrow(tdss) must be equal to length(times)."))
-  if( n_y < 1 )
-    stop(paste(err, "ncol(tdss) cannot be less than 1"))
-  if( ncol(tdss) < n_y )
-    stop(paste(err, "ncol(state) cannot be less than ncol(tdss)."))
-  
-  # Check whether state and tdss contain NA values.
-  if( any(is.na(state)) )
-    stop(paste(err, "state cannot contain NA values."))
-  if( any(is.na(tdss)) )
-    stop(paste(err, "tdss cannot contain NA values."))
-  
-  # Initial conditions.
-  y_0 = state[1, 1:n_y]
-  
-  
-  
-  # Check dynamic_fn_arglist.
-  if( any(names(dynamic_fn_arglist) == "") | any(duplicated(names(dynamic_fn_arglist))) )
-    stop(paste(err, "All elements in dynamic_fn_arglist must be named, and the names cannot contain duplicates."))
-  
-  
-  
-  # Check dynamic_fn.
-  
-  # Extract the argument names of dynamic_fn.
-  dynamic_fn_argnames = names(formals(dynamic_fn))
-  
-  # Check that dynamic_fn has the required number of arguments.
-  if(length(dynamic_fn_argnames) < 3)
-    stop(paste(err, "dynamic_fn must accept at least three input arguments t, y and parms."))
-  
-  # Obtain sample output from dynamic_fn.
-  # Evaluate at times[1] and y_0.
-  # Note that assigning an element to NULL automatically creates a list.
-  dynamic_fn_arglist[[dynamic_fn_argnames[1]]] = times[1]
-  dynamic_fn_arglist[[dynamic_fn_argnames[2]]] = y_0
-  dynamic_fn_arglist[[dynamic_fn_argnames[3]]] = parms
-  dynamic_fn_output = do.call(dynamic_fn, dynamic_fn_arglist)
+  # Check state and tdss. This should only be done after times has been checked.
+  assert_mat(mat=state, times=times, prefix=prefix)
+  assert_mat(mat=tdss, times=times, prefix=prefix)
+  # Note that state can have more columns than tdss if there are additional
+  # elements in the list returned by dynamic_fn(); these are called "global 
+  # values" in deSolve.
+  if( ncol(tdss) < ncol(state) )
+    stop(paste0(prefix, "ncol(state) cannot be less than ncol(tdss)."))
 
-  # Check the output from dynamic_fn.
-  if( !is.list(dynamic_fn_output) )
-    stop(paste(err, "dynamic_fn must return a list."))
-  if( !is.numeric(dynamic_fn_output[[1]]) | (length(dynamic_fn_output[[1]]) != n_y) )
-    stop(paste(err, "The first element of the list returned by dynamic_fn must be numeric, and have length = ncol(tdss)."))
-  if( any(is.na(dynamic_fn_output[[1]])) )
-    stop(paste(err, "The first element of the list returned by dynamic_fn cannot contain NA values."))
+  
+  
+  # Check dynamic_fn. This should only be done after parms, tdss, times and
+  # dynamic_fn_arglist have been checked.
+  # Note that for y, we use the state vector state[1,1:ncol(tdss)], because
+  # ncol(tdss) should give the number of state vectors, whereas state might
+  # contain additional columns corresponding to "global values".
+  assert_dynamic_fn(dynamic_fn=dynamic_fn, parms=parms, y=state[1,1:ncol(tdss)],
+                    times=times, dynamic_fn_arglist=dynamic_fn_arglist,
+                    length_label="ncol(tdss)", prefix=prefix)
+  
+  
   
   if(verbose)cat("Done!\n\n")
   
@@ -226,26 +109,25 @@ parm_sens = function(
   # ------------------------------------------------------------------------
   
   if(verbose)cat("Re-defining dynamic_fn to allow numerical derivatives with respect to parms... ")
-  
-  # The following assignments have been commented out because they were already
-  # made during the input checks.
-  # 
-  # # Elements of state_sens_out.
-  # model_type = state_sens_out$model_type
-  # dynamic_fn = state_sens_out$dynamic_fn
-  # parms = state_sens_out$parms
-  # dynamic_fn_arglist = state_sens_out$dynamic_fn_arglist
-  # times = state_sens_out$times
-  # state = state_sens_out$state
-  # tdss = state_sens_out$tdss
-  # 
-  # # Use ncol(tdss) for n_y, since state might contain additional columns
-  # # corresponding to "global values".
-  # n_y = ncol(tdss)
-  # n_t = length(times)
-  # 
-  # # Extract the argument names of dynamic_fn.
-  # dynamic_fn_argnames = names(formals(dynamic_fn))
+
+  # Elements of state_sens_out. These assignments were already made during the
+  # input checks, but they are repeated here just in case they get accidentally
+  # removed in the future when editing the checks.
+  model_type = state_sens_out$model_type
+  dynamic_fn = state_sens_out$dynamic_fn
+  parms = state_sens_out$parms
+  dynamic_fn_arglist = state_sens_out$dynamic_fn_arglist
+  times = state_sens_out$times
+  state = state_sens_out$state
+  tdss = state_sens_out$tdss
+
+  # Use ncol(tdss) for n_y, since state might contain additional columns
+  # corresponding to "global values".
+  n_y = ncol(tdss)
+  n_t = length(times)
+
+  # Extract the argument names of dynamic_fn.
+  dynamic_fn_argnames = names(formals(dynamic_fn))
 
   
   
@@ -254,10 +136,10 @@ parm_sens = function(
   # structure of parms. We also use a logical variable to keep track of whether
   # parms was originally a list.
   if( is.list(parms) ){
-    parms_not_list = F
+    parms_not_list = FALSE
     parms2 = parms
   } else {
-    parms_not_list = T
+    parms_not_list = TRUE
     parms2 = list(parms)
   }
 
@@ -278,7 +160,7 @@ parm_sens = function(
   # indices, and also "save" the dimensions and dimension names.
   skel_dim = lapply(skel, dim)
   skel_dimnames = lapply(skel, dimnames)
-  skel_array_elements = which(sapply(skel_dim, length) >= 3)
+  skel_array_elements = which( sapply(skel_dim, length) >= 3 )
   
   
   
@@ -313,7 +195,7 @@ parm_sens = function(
     parms_relist2 = parms_relist
     for(i in fun_elements){
       parms_relist2[[i]] = function(t){}
-      body(parms_relist2[[i]]) = parse(text=paste("parms_relist[[",i,"]]",sep=""))
+      body(parms_relist2[[i]]) = parse(text=paste0("parms_relist[[",i,"]]"))
     }
 
     # Evaluate dynamic_fn.
@@ -352,7 +234,7 @@ parm_sens = function(
   # For a discrete-time model, we need to offset the time step in tdss by
   # one, because of the slight difference in the formula.
   if( model_type == "discrete" ){
-    tdss = rbind(tdss[-1, , drop=F], rep(0, n_y))
+    tdss = rbind(tdss[-1, , drop=FALSE], rep(0, n_y))
   }
   
   # Calculate the parameter sensitivities.
@@ -363,7 +245,8 @@ parm_sens = function(
     numDeriv_arglist[["x"]] = unlist(parms_now)
     numDeriv_arglist[["t"]] = times[i]
     numDeriv_arglist[["y"]] = state[i, 1:n_y]
-    tdps_mat[i,] = tdss[i, 1:n_y, drop=F] %*% do.call(jacobian, numDeriv_arglist)
+    tdps_mat[i,] = tdss[i, 1:n_y, drop=FALSE] %*%
+      do.call(what=numDeriv::jacobian, args=numDeriv_arglist)
   }
   
   
@@ -384,7 +267,7 @@ parm_sens = function(
       
       # If the element of skel is a numeric vector, its dimension will be NULL.
       # In that case, leaving the associated columns as a matrix is fine.
-      tdps[[i]] = tdps_mat[, column_counter + 1:skel_length[[i]], drop=F]
+      tdps[[i]] = tdps_mat[, column_counter + 1:skel_length[[i]], drop=FALSE]
       colnames(tdps[[i]]) = names(skel[[i]])
 
     } else {
@@ -394,7 +277,8 @@ parm_sens = function(
       # This should work even if the user had artificially added attributes to
       # convert a numeric vector into a one-dimensional array.
       tdps[[i]] = 
-        array( data = tdps_mat[, column_counter + 1:skel_length[[i]], drop=F],
+        array( data = tdps_mat[, column_counter + 1:skel_length[[i]],
+                               drop=FALSE],
                dim = c(n_t, skel_dim[[i]]),
                dimnames = c(list(NULL), skel_dimnames[[i]]) )
     

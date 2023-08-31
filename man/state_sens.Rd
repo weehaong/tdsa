@@ -21,7 +21,7 @@
   \mjsdeqn{J = \sum_{t=t_0}^{t_1-1}f(t,\mathbf{y}(t)) + \Psi(\mathbf{y}(t_1)).}}
   }
   
-  We now consider a sudden perturbation of the \mjseqn{i}th state variable \mjseqn{y_i} at time \mjseqn{t}. Even though the perturbation only occurs explicitly at time \mjseqn{t}, it will "nudge" the system to a new state trajectory, so all state variables after time \mjseqn{t} will be affected. Hence the reward is affected by both the explicit perturbation as well as the "downstream" changes. We define the time-dependent state sensitivity \mjseqn{\lambda_i(t)} as the sensitivity of the reward to such a perturbation; the sensitivity is time-dependent because it depends on the time \mjseqn{t} at which the perturbation occurs. See Ng et al. (in review, in prep) for a more precise definition.
+  We now consider a sudden perturbation of the \mjseqn{i}th state variable \mjseqn{y_i} at time \mjseqn{t}. Even though the perturbation only occurs explicitly at time \mjseqn{t}, it will "nudge" the system to a new state trajectory, so all state variables after time \mjseqn{t} will be affected. Hence the reward is affected by both the explicit perturbation as well as the "downstream" changes. We define the time-dependent state sensitivity \mjseqn{\lambda_i(t)} as the sensitivity of the reward to such a perturbation; the sensitivity is time-dependent because it depends on the time \mjseqn{t} at which the perturbation occurs. See Ng et al. (in press, submitted) for a more precise definition.
   
   This function calculates the sensitivity \mjseqn{\lambda_i(t)} for every \mjseqn{i} from \mjseqn{1} to \mjseqn{n_y}, at every \mjseqn{t} between \mjseqn{t_0} and \mjseqn{t_1}. Hence, the user can identify the state variable and the time of perturbation that would have the largest impact on the reward.
   
@@ -159,9 +159,9 @@ state_sens(
 }
 
 \references{
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in review). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. American Naturalist. \doi{10.1101/2023.04.13.536769}.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in press). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. American Naturalist. eprint \doi{10.1101/2023.04.13.536769}.
 
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in prep). tdsa: An R package to perform time-dependent sensitivity analysis. Methods in Ecology and Evolution.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (submitted). tdsa: An R package to perform time-dependent sensitivity analysis. Methods in Ecology and Evolution.
 }
 
 \seealso{
@@ -258,7 +258,7 @@ terminal_fn = function(y){
 }
 
 # Time steps over management period. We discretise it into 1001 time steps
-# (so the step size is 0.02).
+# (so the step size is 0.03).
 times = seq(0, 30, length.out=1001)
 
 

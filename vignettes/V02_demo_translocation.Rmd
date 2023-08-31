@@ -1,0 +1,210 @@
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Using the tdsa package for time-dependent sensitivity analysis: a basic example}
+-->
+
+---
+title: "Using the **tdsa** package for time-dependent sensitivity analysis: a basic example"
+author:
+  - "Wee Hao Ng"
+date: "August 31, 2023"
+link-citations: true
+output:
+  html_document:
+    toc: true
+  pdf_document: default
+---
+
+<!-- Justify text -->
+<style> body{ text-align: justify } </style>
+
+<br>
+
+The **tdsa** package is designed to automate most of the steps needed to perform time-dependent sensitivity analysis (TDSA). Please refer to Ng et al. (in press), Ng et al. (in review), or the vignette ["What is time-dependent sensitivity analysis (TDSA)?"](V01_theory.html) for more details on TDSA. In this vignette, we demonstrate how to use the package with a simple example; a more complex example will be presented in a later [vignette](V03_demo_spillover.html). Our focus will be on the input arguments that the user needs to provide, as well as the structure of the output.
+
+<br>
+<hr style="border: 2px solid black">
+<br>
+
+## Translocating individuals into a sink habitat that is being restored
+
+### Background
+
+Conservation translocation refers to the human-mediated movement of a threatened species from one area to another, in order to restore or expand the species' range, or to bolster a small or declining population (Armstrong & Seddon, 2007). While this is often done to reduce the threat of extinction, sometimes the ecosystem service rendered by the species may also provide a strong motivation. For example, although there is still significant debate, the recovery of woody plant species like aspens and cottonwoods at the Yellowstone National Park has been attributed to the biological control of the elk population by wolves reintroduced in the 1990s (Ripple & Beschta, 2012).
+
+Timing is expected to be important for success of a translocation effort. In particular, attempts should only be made after the original threats that led to the species decline or extirpation have been sufficiently reduced (IUCN, 2013). Motivated by this, we created a simple hypothetical model to demonstrate how TDSA can be used to highlight the importance of translocation timing (Ng et al., in press). This is also the example in the help page of the function `state_sens`.
+
+Consider an organism in a sink habitat, where the per-capita loss rate (mortality and emigration combined) exceeds the per-capita unregulated birth rate, so the population is only maintained through immigration. However, the mortality rate is expected to decrease over time due to ongoing habitat restoration or threat reduction efforts, so the population should eventually become self-sustaining. The population dynamics is hence given by
+$$\frac{dy}{dt} = by(t)(1 - ay(t)) - \mu(t)y(t) + \sigma,$$
+where $y(t)$ is the population at time $t$, $b$ the unregulated per-capita birth rate, $a$ the coefficient for reproductive competition, $\mu(t)$ the time-varying per-capita loss rate, and $\sigma$ the immigration rate. We assume that $\mu(t)$ starts off above $b$ (so it is a sink habitat), but decreases as a sigmoid and eventually falls below $b$ (so the population becomes self-sustaining).
+
+The organism provides an important ecosystem service. Over a management period from $t_0$ to $t_1$, we ascribe a value to the organism (the reward function)
+$$J=\int_{t_0}^{t_1} \underbrace{w y(t)}_{\substack{\text{reward}\\\text{integrand}}} dt + \underbrace{v y(t_1)}_{\substack{\text{terminal}\\ \text{payoff}}}.$$
+Here, it is assumed that each individual provides the service at a rate $w$, so the integral gives the total amount of service accumulated over the period. However, we also want to ascribe value to maintaining a large population at the end of the management period, so the second term corresponds to a terminal payoff where $v$ is the ascribed value per individual.
+
+Say we want to translocate individuals to the habitat to speed up the population recovery and increase the reward $J$. What is the best time to do so in order to maximise the increase in the reward? As early as possible? Or only when the loss rate has become low enough that the population can sustain itself? A one-off translocation causes a small, sudden increase in the population size, so it is useful to look at the time-dependent state sensitivity. Alternatively, we can interpret the translocation as a brief spike in the immigration rate $\sigma$, so we can also look at the time-dependent parameter sensitivity of $\sigma$.
+
+<br>
+
+### Installing and loading the **tdsa** package
+
+The **tdsa** package is already on CRAN, so it can be easily installed using the command `install.packages("tdsa")`. For the rest of this vignette, we assume that the package has already been installed.
+
+Before proceeding further, we load the **tdsa** package.
+```{r}
+library(tdsa)
+```
+
+<br>
+
+### Preparing the input arguments
+
+To perform time-dependent sensitivity analysis using the function `state_sens`, we need to prepare the input arguments:
+
+1. `dynamic_fn`, a function of the form `function(t, y, parms, ...)` that returns the RHS of the dynamic equations. For consistency with the syntax of the **deSolve** package (which many users might already be familiar with), the output must be a list, the first element a numeric vector of length equal to the number of state variables (which is just one in this example).
+
+2. `parms`, an object used to specify input parameters for `dynamic_fn`. (We will discuss other ways to specify input parameters in the later vignette.)
+
+3. `reward_fn`, a function of the form `function(t, y, ...)` that returns the integrand in the reward function.
+
+4. `terminal_fn`, a function of the form `function(y)` that returns the terminal payoff.
+
+5. `y_0`, a numeric vector used to specify the initial conditions $y(t_0)$.
+
+6. `times`, a numeric vector used to specify the discretised time steps between $t_0$ and $t_1$ (inclusive) used in the simulation.
+
+```{r}
+# Parameter values for the dynamic equations.
+parms = list(
+  b = 1,                                          # Per-capita birth rate.
+  a = 0.1,                                        # Competition coefficient.
+  mu = function(t){0.5 + 1/(1 + exp((t-10)/2))},  # Per-capita loss rate.
+  sigma = 0.2                                     # Immigration rate.
+)
+
+# Function that returns the dynamic equations.
+dynamic_fn = function(t, y, parms){
+  b = parms[["b"]]
+  a = parms[["a"]]
+  sigma = parms[["sigma"]]
+  mu = parms[["mu"]](t)
+  
+  dy = b*y*(1- a*y) - mu*y + sigma
+  return( list(dy) )
+}
+
+# Initial conditions.
+y_0 = 0.37  # Approximate steady-state population before restoration efforts.
+
+# Function that returns the reward integrand.
+reward_fn = function(t, y){
+  w = 1  # Per-capita rate at which the ecosystem service is provided.
+  return( w * y )
+}
+
+# Function that returns the terminal payoff.
+terminal_fn = function(y){
+  v = 1.74  # Ascribed value per individual at the end of the period.
+  return( v * y )
+}
+
+# Time steps over management period. We discretise it into 1001 time steps
+# (so the step size is 0.03).
+times = seq(0, 30, length.out=1001)
+```
+
+
+<br>
+
+### Calculating time-dependent state sensitivities
+
+We first calculate time-dependent state sensitivities using the function `state_sens`. Since this is a continuous-time model, we choose `model_type = "continuous"`. Since this is a simple model that should only takes seconds to run, there is no need to show progress indicators in the console, so we set `verbose = FALSE`.
+```{r, results="hide"}
+state_sens_out = state_sens(
+  model_type = "continuous",
+  dynamic_fn = dynamic_fn,
+  parms = parms,
+  reward_fn = reward_fn,
+  terminal_fn = terminal_fn,
+  y_0 = y_0,
+  times = times,
+  verbose = FALSE
+)
+```
+
+The output is a list that contains some of the input arguments such as `dynamic_fn` and `times` that will be needed to calculate parameter sensitivities later on, as well as two matrices. The first matrix, called `state`, gives the state variable $y$ at each time step in `times`. Users of the **deSolve** package should find this familiar, except that we have removed the first column containing the time steps. The second matrix, called `tdss`, gives the state sensitivity $\lambda$ also at each time step in `times`.
+```{r}
+str(state_sens_out)
+```
+
+In the left panel below, we plot the per-capita unregulated birth and loss rates, from `parms`. They intersect at around $t=10$. The middle panel shows the population size, from the abovementioned `state` matrix. The right panel shows the time-dependent state sensitivity, from the `tdss` matrix. We see that the sensitivity also peaks at around $t=10$, so translocation is most effective when the population has just become self-sustaining, an intuitive result.
+```{r, fig.dim=c(12,4)}
+# Set graphical parameters.
+par(mfrow=c(1,3), cex=1)
+par(mar=c(3.2,3.2,2,2), mgp=c(2,0.7,0), cex.lab=1.2)
+
+# Plot the per-capita unregulated birth and loss rates.
+plot(times, parms[["mu"]](times), type="l", lwd=2,
+     xlab="Time (year)", ylab="Demographic rate (/year)")
+abline(h=parms[["b"]], col="red", lwd=2)
+legend("topright", col=c("red", "black"), lwd=2, bty="n",
+       legend=c("Birth rate", "Loss rate"))
+
+# Plot the population size.
+plot(times, state_sens_out[["state"]][,1], type="l", lwd=2,
+     xlab="Time (year)", ylab="Population size y")
+
+# Plot the time-dependent state sensitivity. Peaks at around t=10, which is
+# roughly when mu and b intersects, so the population has just become
+# self-sustaining.
+plot(times, state_sens_out[["tdss"]][,1], type="l", lwd=2,
+     xlab="Time (year)", ylab="State sensitivity of y")
+```
+
+<br>
+
+### Calculating time-dependent parameter sensitivities
+
+Once we have calculated the state sensitivities, calculating the parameter sensitivities is easy---all we have to do is to use the output of the function `state_sens` as the input argument of the function `parm_sens`. This is because in addition to the state sensitivities, we have also included in the output of `state_sens` the original `dynamic_fn` that implicitly relates the model parameters to the state variables.
+```{r, results="hide"}
+parm_sens_out = parm_sens(state_sens_out = state_sens_out,
+                          verbose = FALSE)
+```
+
+The output of `parm_sens` is a list containing two elements. The first element is `times`, while the second element `tdps` is an object that gives the time-dependent parameter sensitivities. The structure of `tdps` depends on the structure of `parms`.
+
+1. If `parms` is a numeric object (vector, matrix or array), or a function that returns a numeric object (i.e., a time-varying parameter), then `tdps` is an array with one more index than the object, with the first index indicating the time step. So a parameter vector (in parms) generates a matrix in the output, in which the first column is time and the other columns are the sensitivity to each parameter in the parameter vector at that time. Similarly a matrix becomes a 3-index array, etc. 
+
+2. If `parms` is a list containing any combination of the above, then `tdps` is a list with the above rule applied element-wise.
+
+In this example, `parms` is a list containing single-number parameters `b`, `a`, `sigma` and `mu` (since `mu` is a function that returns a single number), so `tdps` is a list containing a one-column matrix for each parameter.
+```{r}
+str(parm_sens_out)
+```
+
+Below, we plot the parameter sensitivity of $\sigma$. We find that it is identical to the state sensitivity, which is not surprising because from the dynamic equations, we know that a brief spike in $\sigma$ should lead to a sudden increase in the population size and hence the same increase in $J$.
+```{r, fig.dim=c(4,4), out.width="33%"}
+# Set graphical parameters.
+par(mar=c(3.2,3.2,2,2), mgp=c(2,0.7,0), cex.lab=1.2)
+
+# Plot the parameter sensitivity of sigma.
+plot(times, parm_sens_out[["tdps"]][["sigma"]][,1], type="l", lwd=2,
+     xlab="Time (year)", ylab="Param. sensitivity of sigma")
+```
+
+
+
+
+## Bibliography
+
+Armstrong, D. P., & Seddon, P. J. (2007). Directions in reintroduction biology. *Trends in Ecology and Evolution*, 23, 20&ndash;25. doi: [10.1016/j.tree.2007.10.003](https://doi.org/10.1016/j.tree.2007.10.003).
+
+IUCN (2013). *Guidelines for Reintroductions and Other Conservation Translocations*. Version 1.0. Gland, Switzerland. https://portals.iucn.org/library/efiles/documents/2013-009.pdf
+
+
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in press). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. *American Naturalist*. doi: [10.1086/726143](https://doi.org/10.1086/726143). eprint doi: [10.1101/2023.04.13.536769](https://doi.org/10.1101/2023.04.13.536769).
+
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in review). **tdsa**: An R package to perform time-dependent sensitivity analysis. *Methods in Ecology and Evolution*.
+
+Ripple, W. J., & Beschta, R. L. (2012). Trophic cascades in Yellowstone: The first 15 years after wolf reintroduction. *Biological Conservation*, 145, 205&ndash;213. doi: [10.1016/j.biocon.2011.11.005](https://doi.org/10.1016/j.biocon.2011.11.005).
+
