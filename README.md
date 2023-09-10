@@ -2,14 +2,14 @@
 
 Wee Hao Ng
 
-August 31, 2023
+September 10, 2023
 
 ## Introduction
 
 This package automates the steps required to perform time-dependent sensitivity analysis (TDSA), for both continuous- and discrete-time models. Refer to the bibliography for the theory behind TDSA, and the [vignette](https://cran.r-project.org/web/packages/tdsa/vignettes/demo.html) for a simple demonstration of how to use the package.
 
 ## Installation
-The package requires R version (>= 3.2.0).
+The package requires R version (>= 3.5.0).
 
 ### CRAN
 To install the ranger R package from CRAN, use the R command
