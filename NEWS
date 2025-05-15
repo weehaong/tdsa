@@ -1,3 +1,7 @@
+##### Version 1.1-1
+* Added missing 'build/stage23.rdb' file for newer versions of R.
+* Updated citations for references that have now been published in scientific journals.
+
 ##### Version 1.1-0
 * Added automated testing using the package tinytest.
 * Created helper functions for some frequently-used checks; this substantially reduced the code length of the two main functions state_sens() and parm_sens().

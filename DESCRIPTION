@@ -1,6 +1,6 @@
 Package: tdsa
-Version: 1.1-0
-Date: 2023-09-10
+Version: 1.1-1
+Date: 2025-05-15
 Title: Time-Dependent Sensitivity Analysis
 Authors@R: c(person("Wee Hao", "Ng", role = c("aut", "cre"),
                     email = "wn68@cornell.edu",
@@ -16,7 +16,7 @@ Imports: deSolve (>= 1.10-6), mathjaxr (>= 0.8-3), numDeriv (>= 2006.4-1)
 Suggests: knitr, tinytest
 RdMacros: mathjaxr
 VignetteBuilder: knitr
-Description: Functions that can be used to calculate time-dependent state and parameter sensitivities for both continuous- and discrete-time deterministic models. See Ng et al. (in press) <doi:10.1086/726143> for more information about time-dependent sensitivity analysis.
+Description: Functions that can be used to calculate time-dependent state and parameter sensitivities for both continuous- and discrete-time deterministic models. See Ng et al. (2023) <doi:10.1086/726143> for more information about time-dependent sensitivity analysis.
 License: GPL-3
 URL: https://github.com/weehaong/tdsa
 BugReports: https://github.com/weehaong/tdsa/issues

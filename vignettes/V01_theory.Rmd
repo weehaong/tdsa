@@ -44,7 +44,7 @@ $$
 J = \int_{t_0}^{t_1} f(t,\vec{y}(t)) dt + \Psi(\vec{y}(t_1)).
 \tag{2}
 $$
-The integrand $f(t,\vec{y}(t))$ in the first term represents a value accumulation rate that depends on the state of the system $\vec{y}(t)$, so the integral gives the total value accumulated over the period. For example, the instantaneous rate may be the rate of harvesting at a fishery, so the first term gives the total number of fish harvested. The second term $\Psi(\vec{y}(t_1))$ is usually called the terminal payoff, and only depends on the state $\vec{y}(t_1)$ at the end of the period $t_1$. The terminal payoff is often included so that management decisions do not only focus on maximising the value during the period at the expense of leaving the system in a worse state after the period. For example, it may incentivise having a high remaining fish stock at time $t_1$. TDSA for objectives that cannot be written in such a form will be described in a future article and vignette.
+The integrand $f(t,\vec{y}(t))$ in the first term represents a value accumulation rate that depends on the state of the system $\vec{y}(t)$, so the integral gives the total value accumulated over the period. For example, the instantaneous rate may be the rate of harvesting at a fishery, so the first term gives the total number of fish harvested. The second term $\Psi(\vec{y}(t_1))$ is usually called the terminal payoff, and only depends on the state $\vec{y}(t_1)$ at the end of the period $t_1$. The terminal payoff is often included so that management decisions do not only focus on maximising the value during the period at the expense of leaving the system in a worse state after the period. For example, it may incentivise having a high remaining fish stock at time $t_1$. We will explain how to deal with non-standard objectives that cannot be expressed in such a form in a future vignette.
 
 <br> 
 
@@ -168,8 +168,8 @@ Caswell, H. (2007). Sensitivity analysis of transient population dynamics. *Ecol
 
 Crouse, D. T., Crowder, L. B., & Caswell, H. (1987). A Stage-Based Population Model for Loggerhead Sea Turtles and Implications for Conservation. *Ecology*, 68, 1412&ndash;1423. doi: [10.2307/1939225](https://doi.org/10.2307/1939225).
 
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in press). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. *American Naturalist*. doi: [10.1086/726143](https://doi.org/10.1086/726143). eprint doi: [10.1101/2023.04.13.536769](https://doi.org/10.1101/2023.04.13.536769).
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. *American Naturalist*, 202, 630&ndash;654. doi: [10.1086/726143](https://doi.org/10.1086/726143). eprint doi: [10.1101/2023.04.13.536769](https://doi.org/10.1101/2023.04.13.536769).
 
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in review). **tdsa**: An R package to perform time-dependent sensitivity analysis. *Methods in Ecology and Evolution*.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). **tdsa**: An R package to perform time-dependent sensitivity analysis. *Methods in Ecology and Evolution*, 14, 2758&ndash;2765. doi: [10.1111/2041-210X.14216](https://doi.org/10.1111/2041-210X.14216).
 
 Pontryagin, L. S., Boltyanskii, V. G., Gamkrelize, R. V., & Mishchenko, E. F. (1962). *The Mathematical Theory of Optimal Processes*. Wiley.

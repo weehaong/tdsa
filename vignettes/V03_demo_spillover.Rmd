@@ -333,10 +333,9 @@ plot(times, -kappa_sigma_1, xlim=c(0, 5), ylim=c(0, 0.72), xaxs="i", yaxs="i",
 
 Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). Predicting and Controlling Spillover in Multispecies Disease Transmission Networks: Steady-State Analysis. *American Naturalist*, 201, 880&ndash;894. doi: [10.1086/724009](https://doi.org/10.1086/724009).
 
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. *American Naturalist*, 202, 630&ndash;654. doi: [10.1086/726143](https://doi.org/10.1086/726143). eprint doi: [10.1101/2023.04.13.536769](https://doi.org/10.1101/2023.04.13.536769).
 
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in press). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. *American Naturalist*. doi: [10.1086/726143](https://doi.org/10.1086/726143). eprint doi: [10.1101/2023.04.13.536769](https://doi.org/10.1101/2023.04.13.536769).
-
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in review). **tdsa**: An R package to perform time-dependent sensitivity analysis. *Methods in Ecology and Evolution*.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). **tdsa**: An R package to perform time-dependent sensitivity analysis. *Methods in Ecology and Evolution*, 14, 2758&ndash;2765. doi: [10.1111/2041-210X.14216](https://doi.org/10.1111/2041-210X.14216).
 
 Ngor, L., Palmer-Young, E. C., Burciaga Nevarez, R., Russell, K. A., Leger, L., Giacomini, S. J., Pinilla-Gallego, M. S., Irwin, R. E., & McFrederick, Q. S. (2020). Cross-infectivity of honey and bumble bee-associated parasites across three bee families. *Parasitology*, 12, 1290&ndash;1304. doi: [10.1017/S0031182020001018](https://doi.org/10.1017/S0031182020001018)
 

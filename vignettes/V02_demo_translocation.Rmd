@@ -201,10 +201,9 @@ Armstrong, D. P., & Seddon, P. J. (2007). Directions in reintroduction biology. 
 
 IUCN (2013). *Guidelines for Reintroductions and Other Conservation Translocations*. Version 1.0. Gland, Switzerland. https://portals.iucn.org/library/efiles/documents/2013-009.pdf
 
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. *American Naturalist*, 202, 630&ndash;654. doi: [10.1086/726143](https://doi.org/10.1086/726143). eprint doi: [10.1101/2023.04.13.536769](https://doi.org/10.1101/2023.04.13.536769).
 
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in press). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. *American Naturalist*. doi: [10.1086/726143](https://doi.org/10.1086/726143). eprint doi: [10.1101/2023.04.13.536769](https://doi.org/10.1101/2023.04.13.536769).
-
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in review). **tdsa**: An R package to perform time-dependent sensitivity analysis. *Methods in Ecology and Evolution*.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). **tdsa**: An R package to perform time-dependent sensitivity analysis. *Methods in Ecology and Evolution*, 14, 2758&ndash;2765. doi: [10.1111/2041-210X.14216](https://doi.org/10.1111/2041-210X.14216).
 
 Ripple, W. J., & Beschta, R. L. (2012). Trophic cascades in Yellowstone: The first 15 years after wolf reintroduction. *Biological Conservation*, 145, 205&ndash;213. doi: [10.1016/j.biocon.2011.11.005](https://doi.org/10.1016/j.biocon.2011.11.005).
 

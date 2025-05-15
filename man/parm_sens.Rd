@@ -13,6 +13,8 @@
   This function uses the output returned by \code{\link{state_sens}} (which contain elements \code{parms} and \code{times}) to calculate the sensitivity for every parameter in \code{parms} at every time step in \code{times}.
   
   See \code{\link{state_sens}} for examples.
+  
+  \bold{Note}: \code{\link{parm_sens}} assumes that the reward function does not depend explicitly on the parameters of interest, so any parameter perturbation will only affect the reward indirectly through its effects on the state variables. If this assumption is not true, then there is an additional 'direct' contribution that needs to be added to the results; we will show how this can be done in a future vignette.
 }
 
 
@@ -53,8 +55,6 @@ parm_sens(
   To apply these formulae, we need to calculate derivatives of \code{dynamic_fn} with respect to \code{parms}, using the function \code{\link[numDeriv]{jacobian}} from \pkg{numDeriv}. The main coding challenge that we have addressed is to make this work even when the structure of \code{parms} is only under the relatively mild restrictions imposed in \code{\link{state_sens}}.
 }
 
-
-
 \value{
   A list with the following elements:
   \item{\code{times}}{Time steps at which the parameter sensitivities are evaluated, a numeric vector. Same as \code{times} from \code{state_sens_out}.}
@@ -72,10 +72,15 @@ parm_sens(
   }
 }
 
-\references{
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in press). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. American Naturalist. eprint \doi{10.1101/2023.04.13.536769}.
+  
+\section{Warning}{
+  The function \code{\link{parm_sens}} will calculate the sensitivities for \bold{every} parameter in the argument \code{parms} used by \code{dynamic_fn}. Hence, \code{parms} should not contain discrete parameters such as the length of the vector or the dimensions of a matrix; otherwise \code{\link[numDeriv]{jacobian}} (from the \pkg{numDeriv} package) will attempt to numerically evaluate the derivative of \code{dynamic_fn} with respect to such a discrete parameter and will hence almost invariably return an error message or nonsensical results. The solution is instead to make use the fact that we allow \code{dynamic_fn} to take additional arguments \code{\dots}; for example, we can define \code{dynamic_fn} to take an additional argument \code{parms2} that will then be used to hold these discrete parameters instead of \code{parms}.
+}
 
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (submitted). tdsa: An R package to perform time-dependent sensitivity analysis. Methods in Ecology and Evolution.
+\references{
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. American Naturalist, 202, 630-654. \doi{10.1086/726143}. eprint \doi{10.1101/2023.04.13.536769}.
+
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). tdsa: An R package to perform time-dependent sensitivity analysis. Methods in Ecology and Evolution, 14, 2758-2765. \doi{10.1111/2041-210X.14216}.
 }
 
 \seealso{

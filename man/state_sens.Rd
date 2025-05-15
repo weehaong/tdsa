@@ -13,7 +13,7 @@
   \mjsdeqn{\frac{d\mathbf{y}(t)}{dt} = \mathbf{g}(t, \mathbf{y}(t), \mathbf{b}(t)), \quad \mathbf{y}(t_0)=\mathbf{y}_0,}
   where \mjseqn{\mathbf{y}(t)} is the \mjseqn{n_y}-dimensional state vector and \mjseqn{\mathbf{b}(t)} the model parameters at time \mjseqn{t}. Also assume there is some reward of interest (e.g., a management objective) that can be written as
   \mjsdeqn{J = \int_{t_0}^{t_1}f(t,\mathbf{y}(t)) \, dt + \Psi(\mathbf{y}(t_1)),}
-  where \mjseqn{t_0} and \mjseqn{t_1} are the initial and final times, and \mjseqn{\Psi(\mathbf{y}(t_1))} represents a terminal payoff.}
+  where \mjseqn{t_0} and \mjseqn{t_1} are the initial and final times, and \mjseqn{\Psi(\mathbf{y}(t_1))} represents a terminal payoff. (We will explain how to deal with non-standard objectives that cannot be expressed in such a form in a future vignette.)}
     
     \item{\bold{Discrete-time models:} Choose the units of time so that the time steps take consecutive integer values. Assume that the dynamics of the system can be described by first-order recurrence equations (and initial conditions)
   \mjsdeqn{\mathbf{y}(t+1) = \mathbf{g}(t, \mathbf{y}(t), \mathbf{b}(t)), \quad \mathbf{y}(t_0)=\mathbf{y}_0.}
@@ -159,9 +159,9 @@ state_sens(
 }
 
 \references{
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (in press). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. American Naturalist. eprint \doi{10.1101/2023.04.13.536769}.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). A time for every purpose: using time-dependent sensitivity analysis to help understand and manage dynamic ecological systems. American Naturalist, 202, 630-654. \doi{10.1086/726143}. eprint \doi{10.1101/2023.04.13.536769}.
 
-Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (submitted). tdsa: An R package to perform time-dependent sensitivity analysis. Methods in Ecology and Evolution.
+Ng, W. H., Myers, C. R., McArt, S., & Ellner, S. P. (2023). tdsa: An R package to perform time-dependent sensitivity analysis. Methods in Ecology and Evolution, 14, 2758-2765. \doi{10.1111/2041-210X.14216}.
 }
 
 \seealso{
